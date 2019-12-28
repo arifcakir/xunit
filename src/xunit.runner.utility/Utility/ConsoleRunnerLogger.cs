@@ -1,6 +1,4 @@
-﻿#if NET35 || NET452 || NETCOREAPP1_0
-
-using System;
+﻿using System;
 
 namespace Xunit
 {
@@ -80,5 +78,3 @@ namespace Xunit
         }
     }
 }
-
-#endif

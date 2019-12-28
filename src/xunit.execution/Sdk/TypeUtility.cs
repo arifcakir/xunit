@@ -158,15 +158,25 @@ namespace Xunit.Sdk
 
             // Check if we can implicitly convert the argument type to the parameter type
             var implicitMethod = conversionDeclaringType.GetRuntimeMethod("op_Implicit", methodTypes);
-            if (implicitMethod != null && implicitMethod.IsStatic)
+            if (implicitMethod != null && implicitMethod.IsStatic && !IsByRefLikeType(implicitMethod.ReturnType))
                 return implicitMethod.Invoke(null, methodArguments);
 
             // Check if we can explicitly convert the argument type to the parameter type
             var explicitMethod = conversionDeclaringType.GetRuntimeMethod("op_Explicit", methodTypes);
-            if (explicitMethod != null && explicitMethod.IsStatic)
+            if (explicitMethod != null && explicitMethod.IsStatic && !IsByRefLikeType(explicitMethod.ReturnType))
                 return explicitMethod.Invoke(null, methodArguments);
 
             return null;
+        }
+
+        private static bool IsByRefLikeType(Type type)
+        {
+            object val = type.GetType().GetRuntimeProperty("IsByRefLike")?.GetValue(type);
+            if (val is bool isByRefLike)
+                return isByRefLike;
+
+            // The type can't be a byreflike type if the property doesn't exist.
+            return false;
         }
 
         /// <summary>
@@ -266,22 +276,26 @@ namespace Xunit.Sdk
                 // We can't pass List<T> to Dictionary<T, U>
                 // But we can pass Class : Interface<T> to Interface<T>
                 if (methodParameterGenericArguments.Length != passedParameterGenericArguments.Length)
+                {
                     if (genericType.ResolveMismatchedGenericArguments(passedParameterType, methodParameterGenericArguments, ref resultType))
                         return true;
-
-                for (int i = 0; i < methodParameterGenericArguments.Length; i++)
+                }
+                else
                 {
-                    // Drill down through the generic arguments of the parameter provided,
-                    // and find one matching the genericType
-                    // This allows us to resolve complex generics with any number of parameters
-                    // and at any level deep
-                    // e.g. Dictionary<T, U>, Dictionary<string, U>, Dictionary<T, int> etc.
-                    // e.g. Dictionary<Dictionary<T, U>, List<Dictionary<V, W>>
-                    var methodGenericArgument = methodParameterGenericArguments[i];
-                    var passedTypeArgument = passedParameterGenericArguments[i];
+                    for (int i = 0; i < methodParameterGenericArguments.Length; i++)
+                    {
+                        // Drill down through the generic arguments of the parameter provided,
+                        // and find one matching the genericType
+                        // This allows us to resolve complex generics with any number of parameters
+                        // and at any level deep
+                        // e.g. Dictionary<T, U>, Dictionary<string, U>, Dictionary<T, int> etc.
+                        // e.g. Dictionary<Dictionary<T, U>, List<Dictionary<V, W>>
+                        var methodGenericArgument = methodParameterGenericArguments[i];
+                        var passedTypeArgument = passedParameterGenericArguments[i];
 
-                    if (genericType.ResolveGenericParameter(methodGenericArgument, passedTypeArgument, ref resultType))
-                        return true;
+                        if (genericType.ResolveGenericParameter(methodGenericArgument, passedTypeArgument, ref resultType))
+                            return true;
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿#if NET452
+﻿#if NETFRAMEWORK
 
 using System;
 using System.Collections.Generic;
@@ -34,6 +34,16 @@ public class XunitTestCaseTests
         Assert.Equal("Skip Reason", testCase.SkipReason);
     }
 
+    [Fact]
+    public static void Timeout()
+    {
+        var testMethod = Mocks.TestMethod(timeout: 42);
+
+        var testCase = new XunitTestCase(SpyMessageSink.Create(), TestMethodDisplay.ClassAndMethod, TestMethodDisplayOptions.None, testMethod);
+
+        Assert.Equal(42, testCase.Timeout);
+    }
+
     public class Traits : AcceptanceTestV2
     {
         [Fact]
@@ -62,7 +72,7 @@ public class XunitTestCaseTests
             Assert.Equal("Value2", Assert.Single(testCase.Traits["Trait2"]));
         }
 
-        [Fact]
+        [Fact(Skip = "Compiled acceptance tests are currently broken with Mono")]
         public void CustomTrait()
         {
             var passingTests = Run<ITestPassed>(typeof(ClassWithCustomTraitTest));

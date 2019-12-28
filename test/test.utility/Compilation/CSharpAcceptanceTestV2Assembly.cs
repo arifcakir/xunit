@@ -1,4 +1,4 @@
-#if NET452
+#if NETFRAMEWORK
 
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +13,7 @@ public class CSharpAcceptanceTestV2Assembly : CSharpAcceptanceTestAssembly
     protected override IEnumerable<string> GetStandardReferences()
     {
         return base.GetStandardReferences()
-                   .Concat(new[] { "xunit.assert.dll", "xunit.core.dll", "xunit.execution.desktop.dll" });
+                   .Concat(new[] { "xunit.assert.dll", "xunit.core.dll", "xunit.execution.dotnet.dll" });
     }
 
     public static CSharpAcceptanceTestV2Assembly Create(string code, params string[] references)

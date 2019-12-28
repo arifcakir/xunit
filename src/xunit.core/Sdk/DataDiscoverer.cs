@@ -14,10 +14,8 @@ namespace Xunit.Sdk
         /// <inheritdoc/>
         public virtual IEnumerable<object[]> GetData(IAttributeInfo dataAttribute, IMethodInfo testMethod)
         {
-            var reflectionDataAttribute = dataAttribute as IReflectionAttributeInfo;
-            var reflectionTestMethod = testMethod as IReflectionMethodInfo;
-
-            if (reflectionDataAttribute != null && reflectionTestMethod != null)
+            if (dataAttribute is IReflectionAttributeInfo reflectionDataAttribute &&
+                testMethod is IReflectionMethodInfo reflectionTestMethod)
             {
                 var attribute = (DataAttribute)reflectionDataAttribute.Attribute;
                 try
@@ -29,7 +27,7 @@ namespace Xunit.Sdk
                     // If we couldn't find the data on the base type, check if it is in current type.
                     // This allows base classes to specify data that exists on a sub type, but not on the base type.
                     var memberDataAttribute = attribute as MemberDataAttribute;
-                    var reflectionTestMethodType = reflectionTestMethod.Type as IReflectionTypeInfo;
+                    var reflectionTestMethodType = (IReflectionTypeInfo)reflectionTestMethod.Type;
                     if (memberDataAttribute != null && memberDataAttribute.MemberType == null)
                     {
                         memberDataAttribute.MemberType = reflectionTestMethodType.Type;

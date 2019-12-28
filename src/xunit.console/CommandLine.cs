@@ -170,6 +170,7 @@ namespace Xunit.ConsoleClient
                 {
                     GuardNoOptionValue(option);
                     NoColor = true;
+                    TransformFactory.NoErrorColoring = NoColor;
                 }
                 else if (optionName == "noappdomain")    // Here for historical reasons
                 {
@@ -225,7 +226,7 @@ namespace Xunit.ConsoleClient
                             break;
 
                         case "required":
-#if NET452
+#if NETFRAMEWORK
                             // We don't want to throw here on .NET Core, because the user may be specifying a value
                             // via "dotnet xunit" that is only compatible with some target frameworks.
                             AppDomains = AppDomainSupport.Required;
@@ -335,6 +336,13 @@ namespace Xunit.ConsoleClient
 
                     project.Filters.IncludedClasses.Add(option.Value);
                 }
+                else if (optionName == "noclass")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -noclass");
+
+                    project.Filters.ExcludedClasses.Add(option.Value);
+                }
                 else if (optionName == "method")
                 {
                     if (option.Value == null)
@@ -342,12 +350,26 @@ namespace Xunit.ConsoleClient
 
                     project.Filters.IncludedMethods.Add(option.Value);
                 }
+                else if (optionName == "nomethod")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -nomethod");
+
+                    project.Filters.ExcludedMethods.Add(option.Value);
+                }
                 else if (optionName == "namespace")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -namespace");
 
-                    project.Filters.IncludedNameSpaces.Add(option.Value);
+                    project.Filters.IncludedNamespaces.Add(option.Value);
+                }
+                else if (optionName == "nonamespace")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -nonamespace");
+
+                    project.Filters.ExcludedNamespaces.Add(option.Value);
                 }
                 else
                 {

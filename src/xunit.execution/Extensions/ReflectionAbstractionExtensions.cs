@@ -34,16 +34,18 @@ public static class ReflectionAbstractionExtensions
 
         if (!messageBus.QueueMessage(new TestClassConstructionStarting(test)))
             cancellationTokenSource.Cancel();
-
-        try
+        else
         {
-            if (!cancellationTokenSource.IsCancellationRequested)
-                timer.Aggregate(() => testClass = Activator.CreateInstance(testClassType, constructorArguments));
-        }
-        finally
-        {
-            if (!messageBus.QueueMessage(new TestClassConstructionFinished(test)))
-                cancellationTokenSource.Cancel();
+            try
+            {
+                if (!cancellationTokenSource.IsCancellationRequested)
+                    timer.Aggregate(() => testClass = Activator.CreateInstance(testClassType, constructorArguments));
+            }
+            finally
+            {
+                if (!messageBus.QueueMessage(new TestClassConstructionFinished(test)))
+                    cancellationTokenSource.Cancel();
+            }
         }
 
         return testClass;
@@ -64,21 +66,22 @@ public static class ReflectionAbstractionExtensions
                                         ExecutionTimer timer,
                                         CancellationTokenSource cancellationTokenSource)
     {
-        var disposable = testClass as IDisposable;
-        if (disposable == null)
+        if (!(testClass is IDisposable disposable))
             return;
 
         if (!messageBus.QueueMessage(new TestClassDisposeStarting(test)))
             cancellationTokenSource.Cancel();
-
-        try
+        else
         {
-            timer.Aggregate(disposable.Dispose);
-        }
-        finally
-        {
-            if (!messageBus.QueueMessage(new TestClassDisposeFinished(test)))
-                cancellationTokenSource.Cancel();
+            try
+            {
+                timer.Aggregate(disposable.Dispose);
+            }
+            finally
+            {
+                if (!messageBus.QueueMessage(new TestClassDisposeFinished(test)))
+                    cancellationTokenSource.Cancel();
+            }
         }
     }
 
@@ -162,8 +165,7 @@ public static class ReflectionAbstractionExtensions
     /// <returns>The runtime method, if available; <c>null</c>, otherwise</returns>
     public static MethodInfo ToRuntimeMethod(this IMethodInfo methodInfo)
     {
-        var reflectionMethodInfo = methodInfo as IReflectionMethodInfo;
-        if (reflectionMethodInfo != null)
+        if (methodInfo is IReflectionMethodInfo reflectionMethodInfo)
             return reflectionMethodInfo.MethodInfo;
 
         return methodInfo.Type.ToRuntimeType().GetMethodInfoFromIMethodInfo(methodInfo);
@@ -177,8 +179,7 @@ public static class ReflectionAbstractionExtensions
     /// <returns>The runtime type, if available, <c>null</c>, otherwise</returns>
     public static Type ToRuntimeType(this ITypeInfo typeInfo)
     {
-        var reflectionTypeInfo = typeInfo as IReflectionTypeInfo;
-        if (reflectionTypeInfo != null)
+        if (typeInfo is IReflectionTypeInfo reflectionTypeInfo)
             return reflectionTypeInfo.Type;
 
         return SerializationHelper.GetType(typeInfo.Assembly.Name, typeInfo.Name);

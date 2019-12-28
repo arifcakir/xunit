@@ -77,7 +77,7 @@ namespace Xunit.Sdk
                 object arg;
                 if (p.ParameterType == typeof(IMessageSink))
                     arg = DiagnosticMessageSink;
-                else 
+                else
                 if (!collectionFixtureMappings.TryGetValue(p.ParameterType, out arg))
                     missingParameters.Add(p);
                 return arg;
@@ -93,7 +93,7 @@ namespace Xunit.Sdk
             }
         }
 
-        async Task CreateClassFixtureAsync(Type fixtureType)
+        Task CreateClassFixtureAsync(Type fixtureType)
         {
             CreateClassFixture(fixtureType);
             var uninitializedFixtures = ClassFixtureMappings.Values
@@ -102,7 +102,7 @@ namespace Xunit.Sdk
                                         .ToList();
 
             InitializedAsyncFixtures.UnionWith(uninitializedFixtures);
-            await Task.WhenAll(uninitializedFixtures.Select(fixture => Aggregator.RunAsync(fixture.InitializeAsync)));
+            return Task.WhenAll(uninitializedFixtures.Select(fixture => Aggregator.RunAsync(fixture.InitializeAsync)));
         }
 
         /// <inheritdoc/>
@@ -157,10 +157,10 @@ namespace Xunit.Sdk
         {
             var disposeAsyncTasks = ClassFixtureMappings.Values.OfType<IAsyncLifetime>().Select(fixture => Aggregator.RunAsync(fixture.DisposeAsync)).ToList();
 
+            await Task.WhenAll(disposeAsyncTasks);
+
             foreach (var fixture in ClassFixtureMappings.Values.OfType<IDisposable>())
                 Aggregator.Run(fixture.Dispose);
-
-            await Task.WhenAll(disposeAsyncTasks);
         }
 
         /// <inheritdoc/>

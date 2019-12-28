@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit.Abstractions;
 
+#if NETFRAMEWORK
+using System.Linq;
+#endif
+
 namespace Xunit
 {
     /// <summary>
@@ -60,7 +64,7 @@ namespace Xunit
 
             if (this.sourceInformationProvider == null)
             {
-#if NETSTANDARD1_1
+#if NETSTANDARD
                 this.sourceInformationProvider = new NullSourceInformationProvider();
 #else
                 this.sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName);
@@ -122,9 +126,13 @@ namespace Xunit
         /// </summary>
         protected virtual IFrontController CreateInnerController()
         {
-#if NET35 || NET452
+#if NETFRAMEWORK
             var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
+#if NET35
             if (Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0)
+#else
+            if (Directory.EnumerateFiles(assemblyFolder, "xunit.execution.*.dll").Any())
+#endif
                 return new Xunit2(appDomainSupport, sourceInformationProvider, assemblyFileName, configFileName, shadowCopy, shadowCopyFolder, diagnosticMessageSink);
 
             var xunitPath = Path.Combine(assemblyFolder, "xunit.dll");

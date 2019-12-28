@@ -14,6 +14,8 @@ namespace Xunit.ConsoleClient
 
         readonly Dictionary<string, Transform> availableTransforms = new Dictionary<string, Transform>(StringComparer.OrdinalIgnoreCase);
 
+        public static bool NoErrorColoring = false;
+
         protected TransformFactory()
         {
             availableTransforms.Add("xml", new Transform
@@ -40,6 +42,12 @@ namespace Xunit.ConsoleClient
                 Description = "output results to NUnit v2.5 XML file",
                 OutputHandler = (xml, outputFileName) => Handler_XslTransform("nunit", "NUnitXml.xslt", xml, outputFileName)
             });
+            availableTransforms.Add("junit", new Transform
+            {
+                CommandLine = "junit",
+                Description = "output results to JUnit XML file",
+                OutputHandler = (xml, outputFileName) => Handler_XslTransform("junit", "JUnitXml.xslt", xml, outputFileName)
+            });
         }
 
         public static List<Transform> AvailableTransforms
@@ -58,7 +66,6 @@ namespace Xunit.ConsoleClient
 
         static void Handler_XslTransform(string key, string resourceName, XElement xml, string outputFileName)
         {
-#if NET452 || NETCOREAPP2_0
             var xmlTransform = new System.Xml.Xsl.XslCompiledTransform();
 
             using (var writer = XmlWriter.Create(outputFileName, new XmlWriterSettings { Indent = true }))
@@ -69,11 +76,6 @@ namespace Xunit.ConsoleClient
                 xmlTransform.Load(xsltReader);
                 xmlTransform.Transform(xmlReader, writer);
             }
-#else
-            ConsoleHelper.SetForegroundColor(ConsoleColor.Yellow);
-            Console.WriteLine($"Skipping -{key} because XSL-T is not supported on .NET Core 1.x");
-            ConsoleHelper.ResetColor();
-#endif
         }
     }
 }

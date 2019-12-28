@@ -12,6 +12,8 @@
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <LangVersion>latest</LangVersion>
+    <OutputPath Condition=" '$(Platform)' != 'x86' ">bin\$(Configuration)</OutputPath>
+    <OutputPath Condition=" '$(Platform)' == 'x86' ">bin\$(Configuration)_x86</OutputPath>
     <PackageId>$(MSBuildProjectName)</PackageId>
     <RootNamespace>Xunit</RootNamespace>
     <SignAssembly>true</SignAssembly>
@@ -24,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.2" PrivateAssets="all" />
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

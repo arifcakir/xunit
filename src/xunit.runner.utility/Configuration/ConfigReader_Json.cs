@@ -1,10 +1,6 @@
 using System;
 using System.IO;
 
-#if NETSTANDARD1_1
-using System.Reflection;
-#endif
-
 namespace Xunit
 {
     /// <summary>
@@ -30,9 +26,8 @@ namespace Xunit
                     foreach (var propertyName in config.Keys)
                     {
                         var propertyValue = config.Value(propertyName);
-                        var booleanValue = propertyValue as JsonBoolean;
 
-                        if (booleanValue != null)
+                        if (propertyValue is JsonBoolean booleanValue)
                         {
                             if (string.Equals(propertyName, Configuration.DiagnosticMessages, StringComparison.OrdinalIgnoreCase))
                                 result.DiagnosticMessages = booleanValue;
@@ -51,8 +46,7 @@ namespace Xunit
                         }
                         else if (string.Equals(propertyName, Configuration.MaxParallelThreads, StringComparison.OrdinalIgnoreCase))
                         {
-                            var numberValue = propertyValue as JsonNumber;
-                            if (numberValue != null)
+                            if (propertyValue is JsonNumber numberValue)
                             {
                                 int maxParallelThreads;
                                 if (int.TryParse(numberValue.Raw, out maxParallelThreads) && maxParallelThreads >= -1)
@@ -61,8 +55,7 @@ namespace Xunit
                         }
                         else if (string.Equals(propertyName, Configuration.LongRunningTestSeconds, StringComparison.OrdinalIgnoreCase))
                         {
-                            var numberValue = propertyValue as JsonNumber;
-                            if (numberValue != null)
+                            if (propertyValue is JsonNumber numberValue)
                             {
                                 int seconds;
                                 if (int.TryParse(numberValue.Raw, out seconds) && seconds > 0)
@@ -71,8 +64,7 @@ namespace Xunit
                         }
                         else if (string.Equals(propertyName, Configuration.MethodDisplay, StringComparison.OrdinalIgnoreCase))
                         {
-                            var stringValue = propertyValue as JsonString;
-                            if (stringValue != null)
+                            if (propertyValue is JsonString stringValue)
                             {
                                 try
                                 {
@@ -84,8 +76,7 @@ namespace Xunit
                         }
                         else if (string.Equals(propertyName, Configuration.MethodDisplayOptions, StringComparison.OrdinalIgnoreCase))
                         {
-                            var stringValue = propertyValue as JsonString;
-                            if (stringValue != null)
+                            if (propertyValue is JsonString stringValue)
                             {
                                 try
                                 {
@@ -97,8 +88,7 @@ namespace Xunit
                         }
                         else if (string.Equals(propertyName, Configuration.AppDomain, StringComparison.OrdinalIgnoreCase))
                         {
-                            var stringValue = propertyValue as JsonString;
-                            if (stringValue != null)
+                            if (propertyValue is JsonString stringValue)
                             {
                                 try
                                 {
@@ -138,6 +128,9 @@ namespace Xunit
         {
             try
             {
+                if (!File.Exists(configFileName))
+                    return null;
+
                 using (var stream = File_OpenRead(configFileName))
                     return Load(stream);
             }
@@ -146,32 +139,10 @@ namespace Xunit
             return null;
         }
 
-#if NETSTANDARD1_1
-        static Lazy<MethodInfo> fileOpenReadMethod = new Lazy<MethodInfo>(GetFileOpenReadMethod);
-
-        static MethodInfo GetFileOpenReadMethod()
-        {
-            var fileType = Type.GetType("System.IO.File");
-            if (fileType == null)
-                throw new InvalidOperationException("Could not load type: System.IO.File");
-
-            var fileOpenReadMethod = fileType.GetRuntimeMethod("OpenRead", new[] { typeof(string) });
-            if (fileOpenReadMethod == null)
-                throw new InvalidOperationException("Could not find method: System.IO.File.OpenRead");
-
-            return fileOpenReadMethod;
-        }
-
-        static Stream File_OpenRead(string path)
-        {
-            return (Stream)fileOpenReadMethod.Value.Invoke(null, new object[] { path });
-        }
-#else
         static Stream File_OpenRead(string path)
         {
             return File.OpenRead(path);
         }
-#endif
 
         static class Configuration
         {

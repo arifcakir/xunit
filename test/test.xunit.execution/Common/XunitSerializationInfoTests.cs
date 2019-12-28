@@ -196,8 +196,8 @@ public class XunitSerializationInfoTests
             Assert.Equal("SomeValue", result);
         }
 
-#if NET452
-        [Fact]
+#if NETFRAMEWORK
+        [Fact(Skip = "Not working on Linux")]
         public static void CannotSerializeEnumFromGAC()
         {
             var data = ConformanceLevel.Auto;
@@ -230,8 +230,8 @@ public class XunitSerializationInfoTests
             Assert.Equal("Xunit.Serialization.XunitSerializationInfo, test.xunit.execution", result);
         }
 
-#if NET452
-        [Fact]
+#if NETFRAMEWORK
+        [Fact(Skip = "Not working on Linux")]
         public static void CannotSerializeTypeFromGAC()
         {
             var data = typeof(XmlDocument);
